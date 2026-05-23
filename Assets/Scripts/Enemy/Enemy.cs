@@ -17,6 +17,9 @@ public class Enemy : MonoBehaviour, IDamageable
     private Animator _anim;
     private readonly int _speedMash = Animator.StringToHash("Speed");
 
+    private float _knockBackTimer;
+    private float _knockBackPower;
+    
     [Header("Enemy Data")]
     [SerializeField] private EnemyData enemyData;
     
@@ -34,10 +37,17 @@ public class Enemy : MonoBehaviour, IDamageable
 
     public void HandleEnemyUpdate(Transform player)
     {
+        if (_knockBackTimer > 0)
+        {
+            _knockBackTimer -= Time.deltaTime;
+            transform.Translate(-Vector3.forward * (_knockBackPower * (_stats.moveSpeed * Time.deltaTime)));
+            return;
+        }
+        
         _attackCoolDown-=Time.deltaTime;
         
         transform.LookAt(player.position);
-
+        
         if (Vector3.Distance(transform.position, player.position) > 1f)
         {
             transform.Translate(Vector3.forward * (_stats.moveSpeed * Time.deltaTime));
@@ -62,14 +72,30 @@ public class Enemy : MonoBehaviour, IDamageable
         if (IsDead) return;
 
         _health-= damage;
-        
+
         if (_health <= 0)
+        {
             Die();
+            return;
+        }
+
+        if (knockback > 0)
+        {
+            GetKnockBack(knockback);    
+        }
     }
 
+    private void GetKnockBack(float knockback)
+    {
+        _knockBackTimer = .5f;
+        _knockBackPower = knockback;
+    }
+    
     private void Die()
     {
         IsDead = true;
+        GameEvents.PublishEnemyKilled();
+        _anim.Play("Dead");
         gameObject.SetActive(false);
     }
 }

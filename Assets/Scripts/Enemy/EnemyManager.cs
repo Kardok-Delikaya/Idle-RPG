@@ -6,9 +6,8 @@ using Random = UnityEngine.Random;
 
 public class EnemyManager : MonoBehaviour
 {
-    private float _spawnTimer;
     private int _enemiesThatHasBeenKilled;
-
+    private float _spawnTimer;
     [Header("References")]
     [SerializeField] private Transform playerTransform;
     [SerializeField] private Vector2 spawnArea;
@@ -30,18 +29,21 @@ public class EnemyManager : MonoBehaviour
     {
         MoveActiveEnemies();
         DeactivateDeadEnemies();
-        
-        _spawnTimer -= Time.deltaTime;
 
-        if (_spawnTimer <= 0)
+        if (_activeEnemyPool.Count==0)
         {
-            StartCoroutine(SummonEnemies());
+            _spawnTimer-= Time.deltaTime;
+
+            if (_spawnTimer <= 0)
+            {
+                StartCoroutine(SummonEnemies());
+            }
         }
     }
 
     private IEnumerator SummonEnemies()
     {
-        for (; inactiveEnemyPool.Count > 0;)
+        for (int i = inactiveEnemyPool.Count; i > 0; i--)
         {
             inactiveEnemyPool[0].gameObject.SetActive(true);
             inactiveEnemyPool[0].transform.position = GenerateRandomPosition();
@@ -49,8 +51,10 @@ public class EnemyManager : MonoBehaviour
             _activeEnemyPool.Add(inactiveEnemyPool[0]);
             inactiveEnemyPool.RemoveAt(0);
 
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(.1f);
         }
+
+        _spawnTimer = 5f;
     }
 
     private Vector3 GenerateRandomPosition()
@@ -91,11 +95,6 @@ public class EnemyManager : MonoBehaviour
                 inactiveEnemyPool.Add(_activeEnemyPool[i]);
                 _activeEnemyPool.RemoveAt(i);
                 _enemiesThatHasBeenKilled++;
-                
-                if (_activeEnemyPool.Count == 0)
-                {
-                    _spawnTimer = 5f;
-                }
             }
             else
             {

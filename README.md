@@ -1,11 +1,17 @@
 # Idle RPG
 
-To Do List:
+Kullanılan Motor: Unity 6000.3.14f1  
+Kullanılan Dil: C#  
+Çalıştırma Şekli:  
+Silah Seçimi: Kılıç  
+
+Yapılacaklar:  
 -Hareket Sistemi (Bitti)  
 -Kamera Takip Sistemi (Bitti)  
--Düşmanlar Sistemi (Bitti)  
--Silah Sistemi  
--Kılıç ile mesafede düşman varken otomatik saldırı  
--Kılıça can çalma ekle  
--Kılıca savurma saldırısı ekle  
--Kılıç ile düşman öldürünce kalkan alma şansı ekle  
+-Düşman Sistemi (Bitti)  
+-Silah Sistemi (Bitti)  
+-Silah ile mesafesinde düşman varken otomatik saldırı (Bitti)  
+-Kılıca can çalma (Bitti)  
+-Kılıca savurma saldırısı (Bitti)  
+-Kılıca dalga saldırısı (Bitti)  
+-Yükseltme Sistemi

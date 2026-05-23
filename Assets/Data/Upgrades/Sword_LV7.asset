@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd890649fb3df624eb38eeb27bfc3022, type: 3}
+  m_Name: Sword_LV7
+  m_EditorClassIdentifier: Assembly-CSharp::UpgradeData
+  upgradeName: Sword LV7
+  upgradeDescription: +%33 Range
+  upgradeType: 1
+  playerStats:
+    maxHealth: 0
+    moveSpeed: 0
+    coolDownMultiplier: 0
+  weaponValues:
+    damage: 0
+    cooldown: 0
+    specialAttackCooldown: 0
+    range: 0.5
+    knockback: 0
+    lifeSteal: 0
+    canDoSpecialAttack: 1
+    attackType: 0
+  upgradeToAddToList: {fileID: 11400000, guid: c6288b135e71f5e45bac26bb63400e6e, type: 2}
