@@ -14,4 +14,4 @@ Yapılacaklar:
 -Kılıca can çalma (Bitti)  
 -Kılıca savurma saldırısı (Bitti)  
 -Kılıca dalga saldırısı (Bitti)  
--Yükseltme Sistemi
+-Yükseltme Sistemi (Bitti)
