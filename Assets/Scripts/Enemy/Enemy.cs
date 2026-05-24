@@ -1,10 +1,5 @@
 using UnityEngine;
 
-public interface IDamageable
-{
-    public void TakeDamage(float damage, float knockback);
-}
-
 public class Enemy : MonoBehaviour, IDamageable
 {
     private EnemyStats _stats;
@@ -29,14 +24,17 @@ public class Enemy : MonoBehaviour, IDamageable
         _anim=GetComponent<Animator>();
     }
 
+    //Bu kod parçası ile düşmanlar ölse bile kolayca tekrar çalıştırabiliyoruz. Bu sayede sürekli baştan yaratmaya gerek kalmıyor.
     public void InitializeEnemy()
     {
         _health = _stats.maxHealth;
         IsDead = false;
     }
 
+    //Tüm düşmanların kendi Update'i olması yerine sadece çalışanların EnemyManager kodunun update'inde çağırılması daha iyi olduğu için bu kod yazıldı.
     public void HandleEnemyUpdate(Transform player)
     {
+        //eğer ki düşman hasar aldı ve savrulucaksa bu kod ile geri gidiyor ve başka bir kod çalışmıyor.
         if (_knockBackTimer > 0)
         {
             _knockBackTimer -= Time.deltaTime;
@@ -44,8 +42,15 @@ public class Enemy : MonoBehaviour, IDamageable
             return;
         }
         
+        //Sürekli saldırı bekleme süresi azaltılıyor.
         _attackCoolDown-=Time.deltaTime;
         
+        MoveToPlayerAndAttackIfInRange(player);
+    }
+
+    //Bu kısım ile oyuncuya doğru düşmanlar sürekli haraket ediyor ve uygun mesafeye geldiğinde saldırıyorlar
+    private void MoveToPlayerAndAttackIfInRange(Transform player)
+    {
         transform.LookAt(player.position);
         
         if (Vector3.Distance(transform.position, player.position) > 1f)
@@ -64,9 +69,11 @@ public class Enemy : MonoBehaviour, IDamageable
             }
         }
         
+        //Yüskekliği sıfırda tutarak yer çekimi, rigidbody gibi performans isteyen
         transform.position = new Vector3(transform.position.x, 0f, transform.position.z);
     }
 
+    //Hasar alma kodu, Interfaces kodundaki IDamagable'dan geliyor. Bu kodla hasar alıyor 
     public void TakeDamage(float damage, float knockback)
     {
         if (IsDead) return;
@@ -85,17 +92,18 @@ public class Enemy : MonoBehaviour, IDamageable
         }
     }
 
+    //Eğer ki geri savrulucaksa, savrulma süresi boyunca savrulma gücü hızıyla geri savurmak için değer atanıyor.
     private void GetKnockBack(float knockback)
     {
         _knockBackTimer = .5f;
         _knockBackPower = knockback;
     }
     
+    //Ölünce düşman yok edilmektense sadece kapatılıyor ve Game Events ile oyuncuya düşman öldü mesajı iletiliyor. Bu sayede PlayerManager tecrübe puanı alma void'ini çalıştıyor.
     private void Die()
     {
         IsDead = true;
         GameEvents.PublishEnemyKilled();
-        _anim.Play("Dead");
         gameObject.SetActive(false);
     }
 }

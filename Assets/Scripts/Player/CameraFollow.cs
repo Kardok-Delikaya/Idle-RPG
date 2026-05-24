@@ -3,29 +3,25 @@ using UnityEngine;
 public class CameraFollow : MonoBehaviour
 {
     [Header("Target settings")]
-    [SerializeField] private Transform target; // Takip edilecek karakter
+    [SerializeField] private Transform target;
 
     [Header("Position Settings")]
-    [SerializeField] private Vector3 offset = new Vector3(0f, 7f, -10f); // Karakterle kamera arasındaki sabit mesafe
-    [SerializeField] private float smoothSpeed = 10f; // Takip hızı (ne kadar yüksek, o kadar sert takip)
+    [SerializeField] private Vector3 offset = new Vector3(2f, 10f, -6f);
+    [SerializeField] private float smoothSpeed = 10f;
 
     private void Start()
     {
+        //Eğer ki karakter editörde atanmadıysa atanması için kullanılan kod parçası
         if (target == null) target= GameObject.FindGameObjectWithTag("Player").transform;
     }
-
-    // Karakterin tüm hareket ve rotasyon hesaplamaları (Update/FixedUpdate) bittikten sonra çalışır.
-    // Bu sayede kameranın titremesi (stuttering) önlenir.
+    
+    //Bu kod ile kamera oyuncudan belirli mesafede kalıyor ve LateUpdate'te olma sebebi oyuncunun haraket kodu ile aynı anda çalışmaması, bu sayede kameranın titremesi engelleniyor.
     private void LateUpdate()
     {
-
-        // 1. Kameranın gitmek istediği ideal pozisyonu hesapla
         Vector3 desiredPosition = target.position + offset;
 
-        // 2. Mevcut pozisyondan ideal pozisyona pürüzsüz bir geçiş (Lerp) yap
         Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed * Time.fixedTime);
 
-        // 3. Kameranın pozisyonunu güncelle
         transform.position = smoothedPosition;
     }
 }

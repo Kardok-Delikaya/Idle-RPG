@@ -1,5 +1,6 @@
 using System;
 
+//Silah değerleri
 [Serializable]
 public class WeaponValues
 {
@@ -23,7 +24,8 @@ public class WeaponValues
         this.canDoSpecialAttack = canDoSpecialAttack;
         this.attackType = attackType;
     }
-
+    
+    //Silah değerlerinin artması için çağırılması gereken  kod parçası
     internal void Upgrade(WeaponValues weaponValues)
     {
         damage += weaponValues.damage;
@@ -36,6 +38,7 @@ public class WeaponValues
     }
 }
 
+//Oyuncu değerleri
 [Serializable]
 public class PlayerStats
 {
@@ -50,6 +53,7 @@ public class PlayerStats
         this.coolDownMultiplier = coolDownMultiplier;
     }
 
+    //Karakter değerlerinin artması için çağırılması gereken kod parçası
     internal void Upgrade(PlayerStats playerStats)
     {
         maxHealth += playerStats.maxHealth;

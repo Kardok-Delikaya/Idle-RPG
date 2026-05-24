@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using UnityEngine;
 using System.Collections.Generic;
@@ -6,30 +5,30 @@ using Random = UnityEngine.Random;
 
 public class EnemyManager : MonoBehaviour
 {
-    private int _enemiesThatHasBeenKilled;
-    private float _spawnTimer;
     [Header("References")]
     [SerializeField] private Transform playerTransform;
     [SerializeField] private Vector2 spawnArea;
+    private float _spawnTimer;
     
-    [Header("Enemy Pool")] 
-    [SerializeField] private List<Enemy> inactiveEnemyPool = new List<Enemy>();
+    private readonly List<Enemy> _inactiveEnemyPool = new List<Enemy>();
     private readonly List<Enemy> _activeEnemyPool = new List<Enemy>();
 
+    //Oyun ilk çalıştırıldığında EnemyManager oyun objesinin altındaki tüm düşman koduna sahip düşmanları aktif olmayan düşman listesine ekleyip kapatıyor. Bu sayede editörden listeyi değiştirmeye gerek kalmıyor.
     private void Awake()
     {
         foreach (var inActiveEnemies in GetComponentsInChildren<Enemy>())
         {
-            inactiveEnemyPool.Add(inActiveEnemies);
+            _inactiveEnemyPool.Add(inActiveEnemies);
             inActiveEnemies.gameObject.SetActive(false);
         }
     }
 
     private void Update()
     {
-        MoveActiveEnemies();
+        HandleActiveEnemiesUpdates();
         DeactivateDeadEnemies();
 
+        //Eğer ki aktif düşman yoksa tekrar onları aktif etmeden önce 5 saniye bekleyip aktif etmeye başlıyor.
         if (_activeEnemyPool.Count==0)
         {
             _spawnTimer-= Time.deltaTime;
@@ -41,15 +40,16 @@ public class EnemyManager : MonoBehaviour
         }
     }
 
+    //Aktif olmayan düşmanları listenin başından başlayıp tek tek kaldırıyor. i değerini aktif olmayan listeye eşitleyerek aktifleştirme sırasında düşmanlar oyuncu tarafından öldürülürse aktifleştirilmenin bozulmaması sağlanıyor.
     private IEnumerator SummonEnemies()
     {
-        for (int i = inactiveEnemyPool.Count; i > 0; i--)
+        for (int i = _inactiveEnemyPool.Count; i > 0; i--)
         {
-            inactiveEnemyPool[0].gameObject.SetActive(true);
-            inactiveEnemyPool[0].transform.position = GenerateRandomPosition();
-            inactiveEnemyPool[0].InitializeEnemy();
-            _activeEnemyPool.Add(inactiveEnemyPool[0]);
-            inactiveEnemyPool.RemoveAt(0);
+            _inactiveEnemyPool[0].transform.position = GenerateRandomPosition();
+            _inactiveEnemyPool[0].InitializeEnemy();
+            _inactiveEnemyPool[0].gameObject.SetActive(true);
+            _activeEnemyPool.Add(_inactiveEnemyPool[0]);
+            _inactiveEnemyPool.RemoveAt(0);
 
             yield return new WaitForSeconds(.1f);
         }
@@ -57,6 +57,7 @@ public class EnemyManager : MonoBehaviour
         _spawnTimer = 5f;
     }
 
+    //Düşmanların aktifleştirildiği rastgele konumu döndüren kod parçası
     private Vector3 GenerateRandomPosition()
     {
         var position = new Vector3();
@@ -78,7 +79,8 @@ public class EnemyManager : MonoBehaviour
         return position;
     }
 
-    private void MoveActiveEnemies()
+    //Aktif düşmanlardaki HandleEnemyUpdate voidini çağıran void
+    private void HandleActiveEnemiesUpdates()
     {
         foreach (var enemy in _activeEnemyPool)
         {
@@ -86,15 +88,15 @@ public class EnemyManager : MonoBehaviour
         }
     }
 
+    //Eğer ki düşman öldüyse onları kapatıp aktif listeden deaktif listeye yönlendiren kod parçası
     private void DeactivateDeadEnemies()
     {
         for (int i = 0; i < _activeEnemyPool.Count;)
         {
             if (_activeEnemyPool[i].IsDead)
             {
-                inactiveEnemyPool.Add(_activeEnemyPool[i]);
+                _inactiveEnemyPool.Add(_activeEnemyPool[i]);
                 _activeEnemyPool.RemoveAt(i);
-                _enemiesThatHasBeenKilled++;
             }
             else
             {

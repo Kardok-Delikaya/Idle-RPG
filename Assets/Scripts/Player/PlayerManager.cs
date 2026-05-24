@@ -12,8 +12,8 @@ public class PlayerManager : MonoBehaviour
     private readonly int _speedMash = Animator.StringToHash("Speed");
     private readonly float _rotationSpeed = 720f;
 
-    [Header("Player Stats")] 
-    [SerializeField] private PlayerStats playerStats = new PlayerStats(100, 5, 1);
+    [Header("Player Stats")] [SerializeField]
+    private PlayerStats playerStats = new PlayerStats(100, 5, 1);
 
     private float _currentHealth;
     private bool _isDead;
@@ -33,6 +33,7 @@ public class PlayerManager : MonoBehaviour
     [Header("Special Attack Objects")] [SerializeField]
     private SwordProjectile swordProjectile;
 
+    //Oyunda birden fazla oyuncu objesi olmaması için kullanılan kod parçası
     void Awake()
     {
         if (Instance == null)
@@ -41,18 +42,23 @@ public class PlayerManager : MonoBehaviour
             Destroy(gameObject);
     }
 
+    //Aktif edildiği zaman oyuncu objesi, GameEvents'teki belli olaylara abone olur. Bu sayede bazı olaylar olduğunda void'ler çalıştırır.
     void OnEnable()
     {
         GameEvents.OnEnemyKilled += GainExperience;
         GameEvents.OnUpgradeSelected += UpgradeWeaponAndPlayerStats;
+        GameEvents.OnGetFullHpButtonPressed += GetFullHp;
     }
 
+    //Deaktif edildiğinde abonelikten çıkar. Bu sayede tekrar aktif edilirse birden fazla kez çalışmaz void'ler.
     void OnDisable()
     {
         GameEvents.OnEnemyKilled -= GainExperience;
         GameEvents.OnUpgradeSelected -= UpgradeWeaponAndPlayerStats;
+        GameEvents.OnGetFullHpButtonPressed -= GetFullHp;
     }
 
+    //Oyun başında silah ve karakter değerleri atanır, UI'da değerlerin gözükmesi için GameEvents'e haber gönderilir.
     void Start()
     {
         _anim = GetComponent<Animator>();
@@ -73,20 +79,22 @@ public class PlayerManager : MonoBehaviour
     }
 
     #region Combat
+    //Silah, karakterin sağ elindeki bir objede yaratılır ve değerleri oyuncudaki değere atanır, ayrıca animasyon ağacı da animator component'ine atanır.
     private void InitializeWeapon(WeaponData weaponData)
     {
         if (weaponData == null) return;
 
         Instantiate(weaponData.weaponPrefab, weaponHolder);
-        
+
         _equippedWeaponValues = new WeaponValues(weaponData.weaponValues.damage, weaponData.weaponValues.cooldown,
             weaponData.weaponValues.specialAttackCooldown, weaponData.weaponValues.range,
             weaponData.weaponValues.knockback, weaponData.weaponValues.lifeSteal,
             weaponData.weaponValues.canDoSpecialAttack, weaponData.weaponValues.attackType);
-        
+
         _anim.runtimeAnimatorController = weaponData.weaponAnimatorController;
     }
 
+    //Oyuncuya en yakın düşman seçilmesi için kullanılan kod parçası
     private void GetClosestEnemy()
     {
         var damageableObjects =
@@ -108,6 +116,7 @@ public class PlayerManager : MonoBehaviour
             _closestDamageable = Vector3.zero;
     }
 
+    //Bekleme süreleri sürekli azaltılır ve eğer ki normal saldırı sıfın altındaysa yakında düşman aranır. Eğer ki bulunursa silah ile saldırılır.
     private void Combat()
     {
         _normalAttackCoolDownTimer -= playerStats.coolDownMultiplier * Time.deltaTime;
@@ -124,6 +133,7 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    //En yakındaki düşmana döner karakter ve animasyon oynar. Eğer ki özel saldırı yapılıyorsa yapılır, yapılmazsa normal saldırı yapılır. Silahın türüne göre farklı saldırılar çağırılabilir.
     private void AttackWithCurrentWeapon()
     {
         transform.LookAt(_closestDamageable);
@@ -157,6 +167,7 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    //Kılıçta kullanılan düz saldırı. Oyuncunun etrafındaki tüm düşmanları bulur, ardından önünde olan düşmanları seçerek onlara hasar verir. Bu sayede baktığı yöndeki düşmanlar hasar alır sadece.
     private void SlashAttack()
     {
         Collider[] hitColliders =
@@ -185,12 +196,14 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    //Kılıcın özel saldırısı için fırlatılabilir kılıç, verilen değerler atanarak aktif edilir.
     private void SpecialSlashAttack()
     {
         swordProjectile.InitializeProjectile(_equippedWeaponValues.damage * 2, _equippedWeaponValues.knockback,
             _closestDamageable, transform.position);
     }
 
+    //Hasar alma kodu. Ayrıca değer negatif seçilince can yenilemek içinde kullanılabilir
     public void GetDamage(float damage)
     {
         if (_isDead) return;
@@ -204,17 +217,31 @@ public class PlayerManager : MonoBehaviour
             //die
         }
 
+        if (_currentHealth > playerStats.maxHealth)
+        {
+            _currentHealth = playerStats.maxHealth;
+        }
+
         GameEvents.PublishPlayerHealthChanged(_currentHealth, playerStats.maxHealth);
     }
-    
+
     #endregion
-    
+
+    //Oyuncunun canını full'lemek için çağırılan kod parçası, ayrıca öldüyse tekrar canlandırır
+    private void GetFullHp()
+    {
+        _currentHealth = playerStats.maxHealth;
+        _isDead = false;
+        GameEvents.PublishPlayerHealthChanged(_currentHealth, playerStats.maxHealth);
+    }
+
+    //Silahların ve ya oyuncunun değer yükseltilmesi için çağırılan kod parçası
     private void UpgradeWeaponAndPlayerStats(UpgradeData upgradeData)
     {
         switch (upgradeData.upgradeType)
         {
             case UpgradeType.PlayerUpgrade:
-                playerStats.Upgrade(upgradeData.playerStats); 
+                playerStats.Upgrade(upgradeData.playerStats);
                 GetDamage(-upgradeData.playerStats.maxHealth);
                 break;
             case UpgradeType.WeaponUpgrade:
@@ -223,6 +250,7 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    //Düşman öldürülürse oyuncunun +1 deneyim puanı verir. Eğer ki 5 veya fazla puanı alırsa level atlar
     private void GainExperience()
     {
         _currentExperience++;
@@ -238,10 +266,10 @@ public class PlayerManager : MonoBehaviour
 
     #region Movement
 
+    //Bu kod ile haraket eder ve ettiği yöne bakar
     private void Movement()
     {
         Vector3 targetDirection = new Vector3(_inputVector.x, 0f, _inputVector.y).normalized;
-
         Vector3 targetVelocity = targetDirection * playerStats.moveSpeed;
 
         _controller.Move(targetVelocity * Time.deltaTime);
@@ -260,10 +288,11 @@ public class PlayerManager : MonoBehaviour
         _anim.SetFloat(_speedMash, _inputVector.sqrMagnitude);
     }
 
+    //Yeni input sistemi ile haraket edilmesi için, kodun bağlı olduğu objedeki Player Input'a atılır.
     public void HandleMovement(InputAction.CallbackContext context)
     {
         _inputVector = context.ReadValue<Vector2>();
     }
-
+    
     #endregion
 }

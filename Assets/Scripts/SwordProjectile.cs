@@ -13,26 +13,29 @@ public class SwordProjectile : MonoBehaviour
     private Vector3 _moveDirection;
     private readonly HashSet<IDamageable> _damagedTargets = new HashSet<IDamageable>();
 
+    //Oyuncunun upgrade aldığında değerlerin, fırlatılacağı yerin güncellenmesi, belli konuma ışınlanığ aktif edilmesini ve 3 saniye sonra kapanmasını sağlayan kod parçası
     public void InitializeProjectile(float damage, float knockback, Vector3 targetDirection, Vector3 spawnTransform)
     {
         _damagedTargets.Clear();
         _damage = damage;
         _knockback = knockback;
         
-        gameObject.SetActive(true);
-        transform.position = spawnTransform;
-        
         _moveDirection = targetDirection-transform.position;
         _moveDirection.Normalize();
+        
+        transform.position = spawnTransform;
+        gameObject.SetActive(true);
         
         Invoke(nameof(TurnOffProjectile),3f);
     }
 
+    //Aktif edildiğinden bir süre sonra kapanması için çağırılan kod parçası
     private void TurnOffProjectile()
     {
         gameObject.SetActive(false);
     }
     
+    //Update'te sürekli oyuncunun fırlattığı yönde ilerliyor ve kendi etrafında dönüyor
     void Update()
     {
         transform.Translate(_moveDirection * speed * Time.deltaTime, Space.World);
@@ -45,6 +48,7 @@ public class SwordProjectile : MonoBehaviour
         transform.rotation = Quaternion.Euler(90f, _currentYRotation, 0f);
     }
 
+    //Eğer ki IDamageable interface'ine sahip objeler ile çarpışırsa hasar vermesini sağlayan kod parçası. Ayrıca vurduklarını listeye ekleyerek aynı objeye birden fazla hasar verilmemesi sağlanıyor
     void OnTriggerEnter(Collider other)
     {
         IDamageable damageable = other.GetComponent<IDamageable>();

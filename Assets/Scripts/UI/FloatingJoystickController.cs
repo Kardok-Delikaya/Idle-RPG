@@ -5,7 +5,7 @@ using UnityEngine.InputSystem.OnScreen;
 [RequireComponent(typeof(CanvasGroup))]
 public class FloatingJoystickManager : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
-    [Header("Joystick Parçaları")]
+    [Header("Joystick Elements")]
     public RectTransform joystickArea;
     public GameObject stickObject;
     
@@ -20,10 +20,13 @@ public class FloatingJoystickManager : MonoBehaviour, IPointerDownHandler, IDrag
         _stickRect = stickObject.GetComponent<RectTransform>();
         _stickComponent = stickObject.GetComponent<OnScreenStick>();
         _areaCanvasGroup = joystickArea.GetComponent<CanvasGroup>();
-
+        
+        _areaCanvasGroup.blocksRaycasts = false;
+        
         HideJoystick();
     }
 
+    //Bu objenin bağlı olduğu yere dokunulursa joystick'in görünür olmasını sağlayan kod parçası
     public void OnPointerDown(PointerEventData eventData)
     {
         RectTransformUtility.ScreenPointToLocalPointInRectangle(_parentRect, eventData.position, eventData.pressEventCamera, out Vector2 localPoint);
@@ -36,6 +39,7 @@ public class FloatingJoystickManager : MonoBehaviour, IPointerDownHandler, IDrag
         _stickComponent.OnPointerDown(eventData);
     }
 
+    //Eğer ki haraket ederse oradaki stick'e haber veriyor. Stick'te bu değerin değişmesi ile Movement Input'unun değerini değiştirerek haraket haberi veriyor.
     public void OnDrag(PointerEventData eventData)
     {
         _stickComponent.OnDrag(eventData);
@@ -50,12 +54,10 @@ public class FloatingJoystickManager : MonoBehaviour, IPointerDownHandler, IDrag
     private void ShowJoystick()
     {
         _areaCanvasGroup.alpha = 1f;
-        _areaCanvasGroup.blocksRaycasts = false;
     }
 
     private void HideJoystick()
     {
         _areaCanvasGroup.alpha = 0f;
-        _areaCanvasGroup.blocksRaycasts = false;
     }
 }

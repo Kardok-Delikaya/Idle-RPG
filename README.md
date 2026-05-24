@@ -2,7 +2,7 @@
 
 Kullanılan Motor: Unity 6000.3.14f1  
 Kullanılan Dil: C#  
-Çalıştırma Şekli:  
+Çalıştırma Şekli: Başladığında oyun otomatik çalışıyor, restart tuşu ile başa alınıyor.  
 Silah Seçimi: Kılıç  
 
 Yapılacaklar:  

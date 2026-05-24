@@ -1,5 +1,7 @@
 using UnityEngine;
 
+//Bu kod ile düşmanların değerleri saklanıyor ve kolayca değiştirilmesi için veri tutucu diyebileceğimiz editörden değiştiribileceğimiz dosyalar oluşturuyor.
+
 [System.Serializable]
 public struct EnemyStats
 {
