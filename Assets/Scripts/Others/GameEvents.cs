@@ -11,7 +11,13 @@ public static class GameEvents
     public static event Action OnPlayerLevelUp;
     public static event Action<UpgradeData> OnUpgradeSelected;
     public static event Action OnGetFullHpButtonPressed;
+    public static event Action OnIdleAnimationStarted;
 
+    public static void PublishIdleAnimationStarted()
+    {
+        OnIdleAnimationStarted?.Invoke();
+    }
+    
     public static void PublishPlayerHealthChanged(float currentHealth, float maxHealth)
     {
         OnPlayerHealthChanged?.Invoke(currentHealth, maxHealth);

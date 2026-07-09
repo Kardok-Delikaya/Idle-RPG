@@ -20,7 +20,7 @@ MonoBehaviour:
     cooldown: 2
     specialAttackCooldown: 20
     range: 2
-    knockback: 0
+    knockback: 1
     lifeSteal: 0
-    canDoSpecialAttack: 0
+    canDoSpecialAttack: 1
     attackType: 0

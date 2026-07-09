@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour, IDamageable
@@ -24,8 +25,14 @@ public class Enemy : MonoBehaviour, IDamageable
         _anim=GetComponent<Animator>();
     }
 
+    //Düşman aktif edildiği zaman, canının fullenmesi için kullanılan kod parçası
+    private void OnEnable()
+    {
+        InitializeEnemy();
+    }
+
     //Bu kod parçası ile düşmanlar ölse bile kolayca tekrar çalıştırabiliyoruz. Bu sayede sürekli baştan yaratmaya gerek kalmıyor.
-    public void InitializeEnemy()
+    private void InitializeEnemy()
     {
         _health = _stats.maxHealth;
         IsDead = false;
@@ -86,6 +93,8 @@ public class Enemy : MonoBehaviour, IDamageable
             return;
         }
 
+        _anim.Play("Hurt");
+        
         if (knockback > 0)
         {
             GetKnockBack(knockback);    
@@ -104,6 +113,12 @@ public class Enemy : MonoBehaviour, IDamageable
     {
         IsDead = true;
         GameEvents.PublishEnemyKilled();
+        _anim.Play("Dead");
+        Invoke(nameof(CloseEnemy), 3f);
+    }
+
+    private void CloseEnemy()
+    {
         gameObject.SetActive(false);
     }
 }

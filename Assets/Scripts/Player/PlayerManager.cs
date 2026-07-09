@@ -17,6 +17,7 @@ public class PlayerManager : MonoBehaviour
 
     private float _currentHealth;
     private bool _isDead;
+    private bool _isInteracting;
     private float _normalAttackCoolDownTimer;
     private float _specialAttackCoolDownTimer;
 
@@ -48,6 +49,7 @@ public class PlayerManager : MonoBehaviour
         GameEvents.OnEnemyKilled += GainExperience;
         GameEvents.OnUpgradeSelected += UpgradeWeaponAndPlayerStats;
         GameEvents.OnGetFullHpButtonPressed += GetFullHp;
+        GameEvents.OnIdleAnimationStarted += IdleAnimationStarted;
     }
 
     //Deaktif edildiğinde abonelikten çıkar. Bu sayede tekrar aktif edilirse birden fazla kez çalışmaz void'ler.
@@ -56,6 +58,7 @@ public class PlayerManager : MonoBehaviour
         GameEvents.OnEnemyKilled -= GainExperience;
         GameEvents.OnUpgradeSelected -= UpgradeWeaponAndPlayerStats;
         GameEvents.OnGetFullHpButtonPressed -= GetFullHp;
+        GameEvents.OnIdleAnimationStarted -= IdleAnimationStarted;
     }
 
     //Oyun başında silah ve karakter değerleri atanır, UI'da değerlerin gözükmesi için GameEvents'e haber gönderilir.
@@ -72,7 +75,7 @@ public class PlayerManager : MonoBehaviour
 
     private void Update()
     {
-        if (_isDead) return;
+        if (_isDead || _isInteracting) return;
 
         Combat();
         Movement();
@@ -103,6 +106,12 @@ public class PlayerManager : MonoBehaviour
 
         foreach (var damageable in damageableObjects)
         {
+            if (damageable.GetComponent<Enemy>().IsDead)
+            {
+                _closestDamageable = Vector3.zero;
+                return;
+            }
+            
             var dist = Vector3.Distance(damageable.transform.position, transform.position);
 
             if (dist < minDist)
@@ -136,39 +145,24 @@ public class PlayerManager : MonoBehaviour
     //En yakındaki düşmana döner karakter ve animasyon oynar. Eğer ki özel saldırı yapılıyorsa yapılır, yapılmazsa normal saldırı yapılır. Silahın türüne göre farklı saldırılar çağırılabilir.
     private void AttackWithCurrentWeapon()
     {
+        _isInteracting = true;
         transform.LookAt(_closestDamageable);
         _normalAttackCoolDownTimer = _equippedWeaponValues.cooldown;
-
-        _anim.Play("Attack", 0, 0f);
 
         if (_equippedWeaponValues.canDoSpecialAttack && _specialAttackCoolDownTimer < 0)
         {
             _specialAttackCoolDownTimer = _equippedWeaponValues.specialAttackCooldown;
 
-            switch (_equippedWeaponValues.attackType)
-            {
-                case AttackType.Slash:
-                    SpecialSlashAttack();
-                    break;
-                case AttackType.Projectile:
-                    break;
-            }
+            _anim.Play("Special_Attack", 0, 0f);
 
             return;
         }
 
-        switch (_equippedWeaponValues.attackType)
-        {
-            case AttackType.Slash:
-                SlashAttack();
-                break;
-            case AttackType.Projectile:
-                break;
-        }
+        _anim.Play("Attack", 0, 0f);
     }
 
     //Kılıçta kullanılan düz saldırı. Oyuncunun etrafındaki tüm düşmanları bulur, ardından önünde olan düşmanları seçerek onlara hasar verir. Bu sayede baktığı yöndeki düşmanlar hasar alır sadece.
-    private void SlashAttack()
+    public void SlashAttack()
     {
         Collider[] hitColliders =
             Physics.OverlapSphere(transform.position, _equippedWeaponValues.range, damageableLayer);
@@ -197,10 +191,10 @@ public class PlayerManager : MonoBehaviour
     }
 
     //Kılıcın özel saldırısı için fırlatılabilir kılıç, verilen değerler atanarak aktif edilir.
-    private void SpecialSlashAttack()
+    public void SpecialSlashAttack()
     {
         swordProjectile.InitializeProjectile(_equippedWeaponValues.damage * 2, _equippedWeaponValues.knockback,
-            _closestDamageable, transform.position);
+            -_closestDamageable, transform.position);
     }
 
     //Hasar alma kodu. Ayrıca değer negatif seçilince can yenilemek içinde kullanılabilir
@@ -264,6 +258,11 @@ public class PlayerManager : MonoBehaviour
         GameEvents.PublishPlayerExperienceChanged(_currentExperience, ExperienceNeededToLevelUp);
     }
 
+    private void IdleAnimationStarted()
+    {
+        _isInteracting = false;
+    }
+    
     #region Movement
 
     //Bu kod ile haraket eder ve ettiği yöne bakar

@@ -46,7 +46,6 @@ public class EnemyManager : MonoBehaviour
         for (int i = _inactiveEnemyPool.Count; i > 0; i--)
         {
             _inactiveEnemyPool[0].transform.position = GenerateRandomPosition();
-            _inactiveEnemyPool[0].InitializeEnemy();
             _inactiveEnemyPool[0].gameObject.SetActive(true);
             _activeEnemyPool.Add(_inactiveEnemyPool[0]);
             _inactiveEnemyPool.RemoveAt(0);
